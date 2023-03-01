@@ -15,7 +15,7 @@ import jakarta.persistence.Entity;
 @Table(name = "users")
 public class sqltable {
     @Id
-    @GeneratedValue
+    //@GeneratedValue
     private int id;
     private String name;
     private String department;

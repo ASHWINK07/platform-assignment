@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -73,180 +74,180 @@ func Testing(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func mongodb(w http.ResponseWriter, r *http.Request) {
-	client, ctx, cancel, err := connect("mongodb://localhost:27017")
-	if err != nil {
-		panic(err)
-	}
-	var a int = 0
-	if a == 1 {
-		defer close(client, ctx, cancel)
-	}
-	//
-	var document interface{}
-	if r.URL.Path != "/mongodb" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	} else if r.Method == "GET" {
-		name := r.URL.Query().Get("name")
-		fmt.Println("Name : =>", name)
-		fmt.Println("Get Request Works")
-		var filter, option interface{}
-		filter = bson.D{
-			{"Name", name},
-		}
-		option = bson.D{{"_id", 0}}
-		cursor, err := query(client, ctx, "employee", "records", filter, option)
-		if err != nil {
-			panic(err)
-		}
-		var results []bson.D
-		if err := cursor.All(ctx, &results); err != nil {
-			panic(err)
-		}
+// func mongodb(w http.ResponseWriter, r *http.Request) {
+// 	client, ctx, cancel, err := connect("mongodb://localhost:27017")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	var a int = 0
+// 	if a == 1 {
+// 		defer close(client, ctx, cancel)
+// 	}
+// 	//
+// 	var document interface{}
+// 	if r.URL.Path != "/mongodb" {
+// 		http.Error(w, "404 not found.", http.StatusNotFound)
+// 		return
+// 	} else if r.Method == "GET" {
+// 		name := r.URL.Query().Get("name")
+// 		fmt.Println("Name : =>", name)
+// 		fmt.Println("Get Request Works")
+// 		var filter, option interface{}
+// 		filter = bson.D{
+// 			{"Name", name},
+// 		}
+// 		option = bson.D{{"_id", 0}}
+// 		cursor, err := query(client, ctx, "employee", "records", filter, option)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		var results []bson.D
+// 		if err := cursor.All(ctx, &results); err != nil {
+// 			panic(err)
+// 		}
 
-		fmt.Println("Query Result")
-		for _, doc := range results {
-			fmt.Println(doc)
-		}
-		io.WriteString(w, "200 Get request Successfull")
-	} else if r.Method == "POST" {
-		fmt.Println("Post Request Works")
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "ParseForm() err: %v", err)
-			return
-		}
-		fmt.Fprintf(w, "POST request successful")
-		name := r.FormValue("name")
-		department := r.FormValue("department")
-		fmt.Fprintf(w, "Name = %s\n", name)
-		fmt.Fprintf(w, "Department = %s\n", department)
+// 		fmt.Println("Query Result")
+// 		for _, doc := range results {
+// 			fmt.Println(doc)
+// 		}
+// 		io.WriteString(w, "200 Get request Successfull")
+// 	} else if r.Method == "POST" {
+// 		fmt.Println("Post Request Works")
+// 		if err := r.ParseForm(); err != nil {
+// 			fmt.Fprintf(w, "ParseForm() err: %v", err)
+// 			return
+// 		}
+// 		fmt.Fprintf(w, "POST request successful")
+// 		name := r.FormValue("name")
+// 		department := r.FormValue("department")
+// 		fmt.Fprintf(w, "Name = %s\n", name)
+// 		fmt.Fprintf(w, "Department = %s\n", department)
 
-		document = bson.D{
-			{"Name", name},
-			{"Department", department},
-		}
-		insertOneResult, err := insertOne(client, ctx, "employee", "records", document)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("Result of InsertOne")
-		fmt.Println(insertOneResult.InsertedID)
-		io.WriteString(w, "200 Post request Successfull")
-	} else if r.Method == "PUT" {
-		fmt.Println("Put Request Works")
-		name := r.FormValue("name")
-		department := r.FormValue("department")
-		fmt.Fprintf(w, "Name = %s\n", name)
-		fmt.Fprintf(w, "Department = %s\n", department)
-		filter := bson.D{
-			{"Name", name},
-		}
-		// The field of the document that need to updated.
-		update := bson.D{
-			{"$set", bson.D{
-				{"Department", department},
-			}},
-		}
-		result, err := UpdateOne(client, ctx, "employee", "records", filter, update)
-		if err != nil {
-			panic(err)
-		}
-		// print count of documents that affected
-		fmt.Println("update single document")
-		fmt.Println(result.ModifiedCount)
-		io.WriteString(w, "200 Put request Successfull")
-	} else if r.Method == "DELETE" {
-		name := r.URL.Query().Get("name")
-		fmt.Println("name : =>", name)
-		fmt.Println("Delete Request Works")
-		query := bson.D{
-			{"Name", name},
-		}
-		// Returns result of deletion and error
-		result, err := deleteOne(client, ctx, "employee", "records", query)
-		if err != nil {
-			panic(err)
-		}
-		// print the count of affected documents
-		fmt.Println("No.of rows affected by DeleteOne()")
-		fmt.Println(result.DeletedCount)
-		io.WriteString(w, "200 Delete request Successfull")
-	}
-	fmt.Println("CRUD operation")
+// 		document = bson.D{
+// 			{"Name", name},
+// 			{"Department", department},
+// 		}
+// 		insertOneResult, err := insertOne(client, ctx, "employee", "records", document)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		fmt.Println("Result of InsertOne")
+// 		fmt.Println(insertOneResult.InsertedID)
+// 		io.WriteString(w, "200 Post request Successfull")
+// 	} else if r.Method == "PUT" {
+// 		fmt.Println("Put Request Works")
+// 		name := r.FormValue("name")
+// 		department := r.FormValue("department")
+// 		fmt.Fprintf(w, "Name = %s\n", name)
+// 		fmt.Fprintf(w, "Department = %s\n", department)
+// 		filter := bson.D{
+// 			{"Name", name},
+// 		}
+// 		// The field of the document that need to updated.
+// 		update := bson.D{
+// 			{"$set", bson.D{
+// 				{"Department", department},
+// 			}},
+// 		}
+// 		result, err := UpdateOne(client, ctx, "employee", "records", filter, update)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		// print count of documents that affected
+// 		fmt.Println("update single document")
+// 		fmt.Println(result.ModifiedCount)
+// 		io.WriteString(w, "200 Put request Successfull")
+// 	} else if r.Method == "DELETE" {
+// 		name := r.URL.Query().Get("name")
+// 		fmt.Println("name : =>", name)
+// 		fmt.Println("Delete Request Works")
+// 		query := bson.D{
+// 			{"Name", name},
+// 		}
+// 		// Returns result of deletion and error
+// 		result, err := deleteOne(client, ctx, "employee", "records", query)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		// print the count of affected documents
+// 		fmt.Println("No.of rows affected by DeleteOne()")
+// 		fmt.Println(result.DeletedCount)
+// 		io.WriteString(w, "200 Delete request Successfull")
+// 	}
+// 	fmt.Println("CRUD operation")
 
-}
+// }
 
-func mysql(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("mysql", "root:12345@tcp(localhost:3306)/mysql")
-	if err != nil {
-		panic(err)
-	}
-	err = db.Ping()
+// func mysql(w http.ResponseWriter, r *http.Request) {
+// 	db, err := sql.Open("mysql", "root:12345@tcp(localhost:3306)/mysql")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	err = db.Ping()
 
-	// handle error
-	if err != nil {
-		panic(err)
-	}
-	//_, err = db.Exec("CREATE TABLE IF NOT EXISTS  users(Name text, Department text);")
-	_, err = db.Exec("Create Table if not exists users(Name text, Department text,id bigint(20) unsigned NOT NULL AUTO_INCREMENT")
-	fmt.Print("Pong\n")
-	defer db.Close()
-	fmt.Println("Mysql successfull")
-	if r.Method == "GET" {
-		name := r.URL.Query().Get("name")
-		fmt.Println(name)
-		var username string
-		var team string
-		selectquery := "Select * from users where name=?"
-		err := db.QueryRow(selectquery, name).Scan(&username, &team)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Fprintf(w, "Name = %s\n", username)
-		fmt.Fprintf(w, "Department = %s\n", team)
+// 	// handle error
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	//_, err = db.Exec("CREATE TABLE IF NOT EXISTS  users(Name text, Department text);")
+// 	_, err = db.Exec("Create Table if not exists users(Name text, Department text,id bigint(20) unsigned NOT NULL AUTO_INCREMENT")
+// 	fmt.Print("Pong\n")
+// 	defer db.Close()
+// 	fmt.Println("Mysql successfull")
+// 	if r.Method == "GET" {
+// 		name := r.URL.Query().Get("name")
+// 		fmt.Println(name)
+// 		var username string
+// 		var team string
+// 		selectquery := "Select * from users where name=?"
+// 		err := db.QueryRow(selectquery, name).Scan(&username, &team)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		fmt.Fprintf(w, "Name = %s\n", username)
+// 		fmt.Fprintf(w, "Department = %s\n", team)
 
-	} else if r.Method == "POST" {
-		fmt.Println("Post Request Works")
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "ParseForm() err: %v", err)
-			return
-		}
-		//fmt.Fprintf(w, "POST request successful")
-		name := r.FormValue("name")
-		department := r.FormValue("department")
-		fmt.Fprintf(w, "Name = %s\n", name)
-		fmt.Fprintf(w, "Department = %s\n", department)
-		insertquery := "INSERT INTO users(Name,Department) values(?,?)"
-		_, err = db.ExecContext(context.Background(), insertquery, name, department)
-		if err != nil {
-			panic(err)
-		} else {
-			io.WriteString(w, "Mysql insertion successfull")
-		}
-	} else if r.Method == "PUT" {
-		name := r.FormValue("name")
-		department := r.FormValue("department")
-		fmt.Fprintf(w, "Name = %s\n", name)
-		fmt.Fprintf(w, "Department = %s\n", department)
-		updatequery := "update users set Department=? where Name=?"
-		_, err = db.ExecContext(context.Background(), updatequery, department, name)
-		if err != nil {
-			panic(err)
-		} else {
-			io.WriteString(w, "Mysql updation successfull")
-		}
-	} else if r.Method == "DELETE" {
-		name := r.FormValue("name")
-		deletequery := "DELETE from users where name=?"
-		_, err = db.ExecContext(context.Background(), deletequery, name)
-		if err != nil {
-			panic(err)
-		} else {
-			io.WriteString(w, "Mysql deletion successfull")
-		}
-	}
-}
+// 	} else if r.Method == "POST" {
+// 		fmt.Println("Post Request Works")
+// 		if err := r.ParseForm(); err != nil {
+// 			fmt.Fprintf(w, "ParseForm() err: %v", err)
+// 			return
+// 		}
+// 		//fmt.Fprintf(w, "POST request successful")
+// 		name := r.FormValue("name")
+// 		department := r.FormValue("department")
+// 		fmt.Fprintf(w, "Name = %s\n", name)
+// 		fmt.Fprintf(w, "Department = %s\n", department)
+// 		insertquery := "INSERT INTO users(Name,Department) values(?,?)"
+// 		_, err = db.ExecContext(context.Background(), insertquery, name, department)
+// 		if err != nil {
+// 			panic(err)
+// 		} else {
+// 			io.WriteString(w, "Mysql insertion successfull")
+// 		}
+// 	} else if r.Method == "PUT" {
+// 		name := r.FormValue("name")
+// 		department := r.FormValue("department")
+// 		fmt.Fprintf(w, "Name = %s\n", name)
+// 		fmt.Fprintf(w, "Department = %s\n", department)
+// 		updatequery := "update users set Department=? where Name=?"
+// 		_, err = db.ExecContext(context.Background(), updatequery, department, name)
+// 		if err != nil {
+// 			panic(err)
+// 		} else {
+// 			io.WriteString(w, "Mysql updation successfull")
+// 		}
+// 	} else if r.Method == "DELETE" {
+// 		name := r.FormValue("name")
+// 		deletequery := "DELETE from users where name=?"
+// 		_, err = db.ExecContext(context.Background(), deletequery, name)
+// 		if err != nil {
+// 			panic(err)
+// 		} else {
+// 			io.WriteString(w, "Mysql deletion successfull")
+// 		}
+// 	}
+// }
 
 func routing(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("db") == "mongodb" {
@@ -290,7 +291,9 @@ func routing(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "POST request successful")
 			name := r.FormValue("name")
 			department := r.FormValue("department")
-			userid := r.FormValue("id")
+			//userid := r.FormValue("id")
+			rand.Seed(time.Now().UnixNano())
+			userid := rand.Intn(399)
 			fmt.Fprintf(w, "Name = %s\n", name)
 			fmt.Fprintf(w, "Department = %s\n", department)
 			fmt.Fprintf(w, "user id=%s\n", userid)
@@ -310,8 +313,9 @@ func routing(w http.ResponseWriter, r *http.Request) {
 			name := r.URL.Query().Get("name")
 			fmt.Println("name : =>", name)
 			fmt.Println("Delete Request Works")
+			tempid, _ := strconv.Atoi(id[2])
 			query := bson.D{
-				{"_id", id[2]},
+				{"_id", tempid},
 			}
 			result, err := deleteOne(client, ctx, "employee", "records", query)
 			if err != nil {
@@ -326,8 +330,9 @@ func routing(w http.ResponseWriter, r *http.Request) {
 			department := r.FormValue("department")
 			fmt.Fprintf(w, "Name = %s\n", name)
 			fmt.Fprintf(w, "Department = %s\n", department)
+			tempid, _ := strconv.Atoi((id[2]))
 			filter := bson.D{
-				{"_id", id[2]},
+				{"_id", tempid},
 			}
 			// The field of the document that need to updated.
 			update := bson.D{
@@ -418,11 +423,11 @@ func routing(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/testing", Testing)
-	http.HandleFunc("/mongodb", mongodb)
-	http.HandleFunc("/mysql", mysql)
+	// http.HandleFunc("/mongodb", mongodb)
+	// http.HandleFunc("/mysql", mysql)
 	http.HandleFunc("/records/", routing)
-	fmt.Printf("Starting server at port 8080\n")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	fmt.Printf("Starting server at port 8081\n")
+	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal(err)
 	}
 
