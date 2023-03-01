@@ -38,14 +38,14 @@ Java
   to run the application first run the mongodb and mysql server . Here I am running both of these databases inside docker . I have exposed the port 
   command:
   inside final folder run the following command
-  - mvn spring-boot:run
+ ``` - mvn spring-boot:run```
   inside go folder run the following command
-  - go run httpserver.go
+ ``` - go run httpserver.go```
   at any terminal run the below command
-  -docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=12345 --name MYSQL mysql:latest
-  -docker run -p 27017:27017 --name MONGODB mongo:latest
+ ``` -docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=12345 --name MYSQL mysql:latest
+  -docker run -p 27017:27017 --name MONGODB mongo:latest```
   
   run the HAproxy 
-  sudo haproxy -f loadbalancer.cfg
+  ```sudo haproxy -f loadbalancer.cfg```
   
   
