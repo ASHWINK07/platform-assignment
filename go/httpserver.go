@@ -2,14 +2,16 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
-	"database/sql"
-
+	//"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -72,7 +74,7 @@ func Testing(w http.ResponseWriter, r *http.Request) {
 }
 
 func mongodb(w http.ResponseWriter, r *http.Request) {
-	client, ctx, cancel, err := connect("mongodb://172.17.0.2:27017")
+	client, ctx, cancel, err := connect("mongodb://localhost:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -186,7 +188,8 @@ func mysql(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS  users(Name text, Department text);")
+	//_, err = db.Exec("CREATE TABLE IF NOT EXISTS  users(Name text, Department text);")
+	_, err = db.Exec("Create Table if not exists users(Name text, Department text,id bigint(20) unsigned NOT NULL AUTO_INCREMENT")
 	fmt.Print("Pong\n")
 	defer db.Close()
 	fmt.Println("Mysql successfull")
@@ -245,10 +248,179 @@ func mysql(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routing(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Query().Get("db") == "mongodb" {
+		client, ctx, cancel, err := connect("mongodb://localhost:27017")
+		if err != nil {
+			panic(err)
+		}
+		var a int = 0
+		if a == 1 {
+			defer close(client, ctx, cancel)
+		}
+		//
+
+		id := strings.Split(r.URL.Path, "/")
+		var document interface{}
+		if r.Method == "GET" {
+			var filter, option interface{}
+			//p, err := strconv.Atoi(id[2])
+			filter = bson.D{
+				{"_id", id[2]},
+			}
+			option = bson.D{{"_id", 0}}
+			cursor, err := query(client, ctx, "employee", "records", filter, option)
+			if err != nil {
+				panic(err)
+			}
+			var results []bson.D
+			if err := cursor.All(ctx, &results); err != nil {
+				panic(err)
+			}
+			for _, doc := range results {
+				fmt.Println(doc)
+			}
+			io.WriteString(w, "200 Get request Successfull")
+		} else if r.Method == "POST" {
+			fmt.Println("Post Request Works")
+			if err := r.ParseForm(); err != nil {
+				fmt.Fprintf(w, "ParseForm() err: %v", err)
+				return
+			}
+			fmt.Fprintf(w, "POST request successful")
+			name := r.FormValue("name")
+			department := r.FormValue("department")
+			userid := r.FormValue("id")
+			fmt.Fprintf(w, "Name = %s\n", name)
+			fmt.Fprintf(w, "Department = %s\n", department)
+			fmt.Fprintf(w, "user id=%s\n", userid)
+			document = bson.D{
+				{"Name", name},
+				{"Department", department},
+				{"_id", userid},
+			}
+			insertOneResult, err := insertOne(client, ctx, "employee", "records", document)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println("Result of InsertOne")
+			fmt.Println(insertOneResult.InsertedID)
+			io.WriteString(w, "200 Post request Successfull")
+		} else if r.Method == "DELETE" {
+			name := r.URL.Query().Get("name")
+			fmt.Println("name : =>", name)
+			fmt.Println("Delete Request Works")
+			query := bson.D{
+				{"_id", id[2]},
+			}
+			result, err := deleteOne(client, ctx, "employee", "records", query)
+			if err != nil {
+				panic(err)
+			}
+			//fmt.Println("No.of rows affected by DeleteOne()")
+			fmt.Println(result.DeletedCount)
+			io.WriteString(w, "200 Delete request Successfull")
+		} else if r.Method == "PUT" {
+			fmt.Println("Put Request Works")
+			name := r.FormValue("name")
+			department := r.FormValue("department")
+			fmt.Fprintf(w, "Name = %s\n", name)
+			fmt.Fprintf(w, "Department = %s\n", department)
+			filter := bson.D{
+				{"_id", id[2]},
+			}
+			// The field of the document that need to updated.
+			update := bson.D{
+				{"$set", bson.D{
+					{"Department", department},
+				}},
+			}
+			result, err := UpdateOne(client, ctx, "employee", "records", filter, update)
+			if err != nil {
+				panic(err)
+			}
+			// print count of documents that affected
+			fmt.Println("update single document")
+			fmt.Println(result.ModifiedCount)
+			io.WriteString(w, "200 Put request Successfull")
+
+		}
+	} else if r.URL.Query().Get("db") == "mysql" {
+		db, err := sql.Open("mysql", "root:12345@tcp(localhost:3306)/mysql")
+		if err != nil {
+			panic(err)
+		}
+		err = db.Ping()
+
+		// handle error
+		if err != nil {
+			panic(err)
+		}
+		//_, err = db.Exec("Create Table if not exists users(Name text, Department text,id bigint(20) unsigned NOT NULL AUTO_INCREMENT)")
+		_, err = db.Exec("Create Table if not exists users(Name text, Department text,id INT PRIMARY KEY NOT NULL AUTO_INCREMENT)")
+		defer db.Close()
+		id := strings.Split(r.URL.Path, "/")
+		if r.Method == "GET" {
+			var username string
+			var team string
+			var userid int
+			selectquery := "Select * from users where id=?"
+			err := db.QueryRow(selectquery, id[2]).Scan(&username, &team, &userid)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Fprintf(w, "_id = %d\n", userid)
+			fmt.Fprintf(w, "Name = %s\n", username)
+			fmt.Fprintf(w, "Department = %s\n", team)
+
+		} else if r.Method == "POST" {
+			if err := r.ParseForm(); err != nil {
+				fmt.Fprintf(w, "ParseForm() err: %v", err)
+				return
+			}
+			name := r.FormValue("name")
+			department := r.FormValue("department")
+			fmt.Fprintf(w, "Name = %s\n", name)
+			fmt.Fprintf(w, "Department = %s\n", department)
+			insertquery := "INSERT INTO users(Name,Department) values(?,?)"
+			_, err = db.ExecContext(context.Background(), insertquery, name, department)
+			if err != nil {
+				panic(err)
+			} else {
+				io.WriteString(w, "Mysql insertion successfull")
+			}
+		} else if r.Method == "PUT" {
+			name := r.FormValue("name")
+			department := r.FormValue("department")
+			fmt.Fprintf(w, "Name = %s\n", name)
+			fmt.Fprintf(w, "Department = %s\n", department)
+			updatequery := "update users set Department=? where id=?"
+			p, err := strconv.Atoi(id[2])
+			_, err = db.ExecContext(context.Background(), updatequery, department, p)
+			if err != nil {
+				panic(err)
+			} else {
+				io.WriteString(w, "Mysql updation successfull")
+			}
+		} else if r.Method == "DELETE" {
+			p, err := strconv.Atoi(id[2])
+			deletequery := "DELETE from users where id=?"
+			_, err = db.ExecContext(context.Background(), deletequery, p)
+			if err != nil {
+				panic(err)
+			} else {
+				io.WriteString(w, "Mysql deletion successfull")
+			}
+		}
+	}
+
+}
+
 func main() {
 	http.HandleFunc("/testing", Testing)
 	http.HandleFunc("/mongodb", mongodb)
 	http.HandleFunc("/mysql", mysql)
+	http.HandleFunc("/records/", routing)
 	fmt.Printf("Starting server at port 8080\n")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
