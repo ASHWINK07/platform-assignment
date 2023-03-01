@@ -4,7 +4,7 @@ java spring boot runs in port number 8080
 Go httpserver runs in port number 8081
 these are the apis 
 check for the id path whether that users exists or not
-
+```
 Go
 	-mysql
 		curl http://127.0.0.1:8081/records/1/\?db\=mysql
@@ -34,7 +34,7 @@ Java
 		curl -X POST http://127.0.0.1:8080/records/\?db\=mongodb -d "name=yashwal&department=self-serve-PIM"
 		curl -X PUT http://127.0.0.1:8080/records/379/\?db\=mongodb -d "name=ashwin&department=frontend"
 		curl -X DELETE http://127.0.0.1:8080/records/148/\?db\=mongodb
-    
+```
   to run the application first run the mongodb and mysql server . Here I am running both of these databases inside docker . I have exposed the port 
   command:
   inside final folder run the following command
