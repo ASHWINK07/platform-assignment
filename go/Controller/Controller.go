@@ -15,38 +15,22 @@ import (
 )
 
 func Routing(w http.ResponseWriter, r *http.Request) {
+	// if the db query parameter i mongodb like - http://127.0.0.1:8081/records/db=mongodb
 	if r.URL.Query().Get("db") == "mongodb" {
 		//"mongodb://localhost:27017"
 		client, ctx, cancel, err := MongoConnections.Connect()
 		if err != nil {
 			panic(err)
 		}
-		var a int = 0
-		if a == 1 {
-			defer MongoConnections.Close(client, ctx, cancel)
-		}
-		//
 
+		defer MongoConnections.Close(client, ctx, cancel)
+		//get the id of the employee http://127.0.0.1:8081/records/1/db=mongodb  here id will return [records 1]
 		id := strings.Split(r.URL.Path, "/")
-		//var document interface{}
+		//if it is a Get Request on mongodb database
 		if r.Method == "GET" {
-			// var filter, option interface{}
-			// p, err := strconv.Atoi(id[2])
-			// filter = bson.D{
-			// 	{"_id", p},
-			// }
-			// option = bson.D{{"_id", 0}}
-			// cursor, err := MongoServices.Query(client, ctx, "employee", "records", filter, option)
-			// if err != nil {
-			// 	panic(err)
-			// }
-			// var results []bson.D
-			// if err := cursor.All(ctx, &results); err != nil {
-			// 	panic(err)
-			// }
-			// fmt.Println(results[0][0])
-			// fmt.Println(results[0][1])
 			var results []bson.D
+			//sample get request:curl http://127.0.0.1:8081/records/3/\?db\=mongodb
+			//here get the details of employee with id as 3
 			results, err := MongoOperations.MongoGet(id[2], client, ctx)
 			if err != nil {
 				panic(err)
@@ -54,26 +38,34 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fmt.Println(results)
-			//io.WriteString(w,)
-
+			//return the ouput for get request
 			io.WriteString(w, "200 Get request Successfull")
 			return
 		} else if r.Method == "POST" {
+			//if it is a Post Request on mongodb database
 			if err := r.ParseForm(); err != nil {
 				fmt.Fprintf(w, "ParseForm() err: %v", err)
 				return
 			}
+			//get the form values i.e name and department
+			//sample Post request :curl -X POST http://127.0.0.1:8081/records/\?db\=mongodb -d "name=ashwin&department=platform"
 			name := r.FormValue("name")
 			department := r.FormValue("department")
+			//Insert into mongodb database
 			err = MongoOperations.MongoInsert(name, department, client, ctx)
+			//check whether there is error
 			if err != nil {
 				panic(err)
 				return
 			}
 			fmt.Println("POST request successfull")
+			//return the ouput for Post request
 			io.WriteString(w, "200 Post request Successfull")
 			return
 		} else if r.Method == "DELETE" {
+			//if it is a Delete Request on mongodb database
+			//sample delete request:curl -X DELETE http://127.0.0.1:8081/records/1/\?db\=mongodb
+			//Delete the employee with id as 1
 			err = MongoOperations.MongoDelete(id[2], client, ctx)
 			if err != nil {
 				panic(err)
@@ -83,46 +75,44 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, "200 Delete request Successfull")
 			return
 		} else if r.Method == "PUT" {
-			// fmt.Println("Put Request Works")
+			//if it is a Put Request on mongodb database
+			//Get the field values that is name and department
+			//sample put request:curl -X PUT http://127.0.0.1:8081/records/2/\?db\=mongodb -d "name=ashwin&department=frontend"
+			//update the employee with id as 2
 			name := r.FormValue("name")
 			department := r.FormValue("department")
-			// fmt.Fprintf(w, "Name = %s\n", name)
-			// fmt.Fprintf(w, "Department = %s\n", department)
-			// tempid, _ := strconv.Atoi((id[2]))
-			// filter := bson.D{
-			// 	{"_id", tempid},
-			// }
-			// update := bson.D{
-			// 	{"$set", bson.D{
-			// 		{"Department", department},
-			// 	}},
-			// }
 			err = MongoOperations.MongoUpdate(id[2], name, department, client, ctx)
-			//result, err := MongoServices.UpdateOne(client, ctx, "employee", "records", filter, update)
 			if err != nil {
 				panic(err)
 				return
 			}
 			fmt.Println("update single document")
-			// fmt.Println(result.ModifiedCount)
+			//return the ouput for Put request
 			io.WriteString(w, "200 Put request Successfull")
 			return
 
 		}
 	} else if r.URL.Query().Get("db") == "mysql" {
+		//if the db query parameter is mysql
+		//Connect to mysql database
 		db, err := SqlConnections.SqlConnect()
+		//retriev the employee id
 		id := strings.Split(r.URL.Path, "/")
 		if r.Method == "GET" {
+			//sample get request:curl http://127.0.0.1:8081/records/3/\?db\=mysql
+			//get details of employee with id as 3
 			var username string
 			var team string
 			var userid int
 			username, team, userid = SqlServices.SqlGet(db, id[2])
+			//return the output
 			fmt.Fprintf(w, "_id = %d\n", userid)
 			fmt.Fprintf(w, "Name = %s\n", username)
 			fmt.Fprintf(w, "Department = %s\n", team)
 			return
 
 		} else if r.Method == "POST" {
+			//sample post request:curl -X POST http://127.0.0.1:8081/records/\?db\=mysql -d "name=ashwin&department=platform"
 			if err := r.ParseForm(); err != nil {
 				fmt.Fprintf(w, "ParseForm() err: %v", err)
 				return
@@ -137,6 +127,8 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		} else if r.Method == "PUT" {
+			//sample put request:curl -X PUT http://127.0.0.1:8081/records/2/\?db\=mysql -d "name=ashwin&department=frontend"
+			//update the employee with id as 2
 			name := r.FormValue("name")
 			department := r.FormValue("department")
 			err = SqlServices.SqlUpdate(db, id[2], name, department)
@@ -148,10 +140,13 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		} else if r.Method == "DELETE" {
+			//sample delete request:curl -X DELETE http://127.0.0.1:8081/records/1/\?db\=mysql
+			//delete the employee with id as 1
 			err = SqlServices.SqlDelete(db, id[2])
 			if err != nil {
 				panic(err)
 			} else {
+				//return the ouput for Delete request
 				io.WriteString(w, "Mysql deletion successfull")
 			}
 			return

@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// set the parameters for connecting to Mongodb database
 const (
 	host = "localhost"
 	port = 27017
@@ -31,6 +32,7 @@ func Close(client *mongo.Client, ctx context.Context, cancel context.CancelFunc)
 
 func Connect() (*mongo.Client, context.Context, context.CancelFunc, error) {
 	var mongoconnectionurl string
+	// the url looks like : mongodb://localhost:27017
 	mongoconnectionurl = fmt.Sprintf("%s://%s:%d", databasename, host, port)
 	ctx, cancel := context.WithTimeout(context.Background(),
 		30*time.Second)
