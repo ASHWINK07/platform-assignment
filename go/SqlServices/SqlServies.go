@@ -40,6 +40,7 @@ func SqlUpdate(db *sql.DB, id, name, department string) error {
 
 func SqlDelete(db *sql.DB, id string) error {
 	//delete the emplopyee based on id
+	//convert the id to int since the datatype declared in table is int
 	userid, err := strconv.Atoi(id)
 	if err != nil {
 		panic((err))
