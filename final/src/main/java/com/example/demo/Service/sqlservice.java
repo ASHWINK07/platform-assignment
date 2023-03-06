@@ -1,17 +1,26 @@
-package com.example.demo.Service;
-import com.example.demo.Entity.sqltable;
-import com.example.demo.Repository.sqlrepository;
+package com.example.demo.service;
+import com.example.demo.entity.SqlTable;
+import com.example.demo.repository.SqlRepository;
+import com.example.demo.service.InterfaceSqlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 @Service
-public class sqlservice {
+public class SqlService implements InterfaceSqlService {
     @Autowired
-    private sqlrepository repository;
+    private SqlRepository repository;
 
-    public sqltable savedetails(sqltable details) {
+    public SqlTable SaveDetails(SqlTable details) {
         return repository.save(details);
     }
-    public sqltable getdetailsById(int id) {
+    public SqlTable GetDetailsById(int id) {
+        boolean exists = repository.existsById(id);
+        System.out.println(exists);
+        if (!exists){
+            SqlTable details = new SqlTable();
+            details.setName("Details not");
+            details.setDepartment("Found");
+            return details;
+        }
         return repository.findById(id).orElse(null);
     }
 
@@ -19,17 +28,28 @@ public class sqlservice {
     //     return repository.findByName(name);
     // }
 
-    public String deletedetails(int id) {
+    public String DeleteDetails(int id) {
+        boolean exists = repository.existsById(id);
+        System.out.println(exists);
+        if (!exists){
+            return "details not found";
+        }
         repository.deleteById(id);
         return "details removed !! " + id;
     }
 
-    public sqltable updatedetails(sqltable details) {
-        sqltable existingdetails = repository.findById(details.getId()).orElse(null);
+    public SqlTable UpdateDetails(SqlTable details) {
+        boolean exists = repository.existsById(details.getId());
+        System.out.println(exists);
+        if (!exists){
+            SqlTable data = new SqlTable();
+            data.setName("Details not");
+            data.setDepartment("Found");
+            return data;
+        }
+        SqlTable existingdetails = repository.findById(details.getId()).orElse(null);
         existingdetails.setName(details.getName());
         existingdetails.setDepartment(details.getDepartment());
-        // existingdetails.setQuantity(details.getQuantity());
-        // existingdetails.setPrice(details.getPrice());
         return repository.save(existingdetails);
     }
 }

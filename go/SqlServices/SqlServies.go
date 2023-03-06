@@ -10,7 +10,7 @@ import (
 
 func SqlInsert(db *sql.DB, name, department string) error {
 	//insert username and department ,id is auto-increamented need not be inserted
-	insertquery := "INSERT INTO users(Name,Department) values(?,?)"
+	insertquery := "INSERT INTO users(Department,Name) values(?,?)"
 	_, err := db.ExecContext(context.Background(), insertquery, name, department)
 	return err
 }
@@ -20,7 +20,7 @@ func SqlGet(db *sql.DB, id string) (string, string, int) {
 	var userid int
 	//get the username,team and userid
 	selectquery := "Select * from users where id=?"
-	err := db.QueryRow(selectquery, id).Scan(&username, &team, &userid)
+	err := db.QueryRow(selectquery, id).Scan(&userid, &team, &username)
 	if err != nil {
 		panic(err)
 	}

@@ -1,6 +1,6 @@
-package com.example.demo.Repository;
-import com.example.demo.Entity.sqltable;
+package com.example.demo.repository;
+import com.example.demo.entity.SqlTable;
 import org.springframework.data.jpa.repository.JpaRepository;
-public interface sqlrepository extends JpaRepository<sqltable,Integer> {
+public interface SqlRepository extends JpaRepository<SqlTable,Integer> {
     
 }

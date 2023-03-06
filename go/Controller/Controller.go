@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/ASHWINK07/tasker/MongoConnections"
@@ -36,10 +37,47 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 				return
 			}
+			for _, doc := range results {
+
+				fmt.Println(doc)
+			}
 
 			fmt.Println(results)
+			fmt.Println(reflect.TypeOf(results))
+			fmt.Println(reflect.TypeOf(results[0]))
+			fmt.Println(reflect.TypeOf(results[0][0]))
+			a := results[0].Map()
+			//key := results[0][0].Key
+			//var value1, value2 string
+
+			value1 := results[0][0].Value
+			value2 := results[0][1].Value
+			//fmt.Println(key)
+			fmt.Println(value1, reflect.TypeOf(value1))
+			fmt.Println(value2, reflect.TypeOf(value2))
+			//fmt.Fprintf(w, value1.string(), value2)
+			// b, err := bson.Marshal(results[0])
+			// if err != nil {
+			// 	fmt.Println("error:", err)
+			// 	return
+			// }
+			// s := string(b)
+			// fmt.Println(s)
+			//k := strings.Split(s, "Name")
+			//fmt.Println(k)
+			//fmt.Println(reflect.TypeOf(s))
+			// var username map[string]interface{}
+			// k,err := a["Name"].(string)
+			// fmt.Println(username)
+			fmt.Println(reflect.TypeOf(a["Name"]))
+			//fmt.Println(a["Department"])
+			//io.WriteString(w,a["Name"])
+			//io.WriteString(w,results[0].Map())
+			//fmt.Println(results.name)
+			//results.
 			//return the ouput for get request
-			io.WriteString(w, "200 Get request Successfull")
+			//io.WriteString(w, "200 Get request Successfull")
+			//io.WriteString(w, value1+value2)
 			return
 		} else if r.Method == "POST" {
 			//if it is a Post Request on mongodb database

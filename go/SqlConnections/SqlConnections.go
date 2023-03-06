@@ -20,7 +20,12 @@ func SqlConnect() (*sql.DB, error) {
 	//the connection url looks like :root:12345@tcp(localhost:3306)/mysql
 	sqlconnectionurl := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", user, password, host, port, databasename)
 	db, err := sql.Open(databasename, sqlconnectionurl)
-	_, err = db.Exec("Create Table if not exists users(Name text, Department text,id INT PRIMARY KEY NOT NULL AUTO_INCREMENT)")
+	if err != nil {
+		panic(err)
+
+	}
+	_, err = db.Exec("Create Table if not exists users(id INT unsigned PRIMARY KEY NOT NULL AUTO_INCREMENT, Department text,Name text)")
+	_, err = db.Exec("ALTER TABLE users CHANGE COLUMN id id INT(11) NOT NULL AUTO_INCREMENT ;")
 	//return the pointer to database created
 	return db, err
 }
