@@ -1,4 +1,4 @@
-package com.example.demo.Entity;
+package com.example.demo.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,10 +13,14 @@ import jakarta.persistence.Entity;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-public class sqltable {
+public class SqlTable {
+    
     @Id
     //@GeneratedValue
-    private int id;
-    private String name;
-    private String department;
+    private int id;  
+    private String Name;
+    private String Department;
+
+    
+    
 }
