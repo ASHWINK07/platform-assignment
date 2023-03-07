@@ -5,7 +5,8 @@ import com.example.demo.repository.MongodbRepository;
 import com.example.demo.service.InterfaceMongoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.Random;
+import java.util.List;
+//import java.util.Random;
 @Service
 
 public class MongoService implements InterfaceMongoService {
@@ -13,8 +14,21 @@ public class MongoService implements InterfaceMongoService {
     private MongodbRepository repo;
 
     public MongoTable AddDetails(MongoTable mongo){
-        Random rand = new Random();
-        mongo.set_id(rand.nextInt(999));
+        //Random rand = new Random();
+        List<MongoTable> alldetails = repo.findAll();
+        if (alldetails.size()==0){
+            mongo.set_id(1);
+        }
+        else {
+        int max=0;
+        for (int i=0;i<alldetails.size();++i){
+            if (alldetails.get(i).get_id() > max){
+                max = alldetails.get(i).get_id();
+            }
+        }
+        mongo.set_id(max+1);
+    }
+        //mongo.set_id(rand.nextInt(999));
         return repo.save(mongo);
     }
     public MongoTable GetDetailsbyId(int _id){
@@ -26,7 +40,7 @@ public class MongoService implements InterfaceMongoService {
             details.setDepartment("Found");
             return details;
         }
-        
+        // MongoTable<List> all_records  = repo.findAll();
         return repo.findById(_id).get();
     }
     public MongoTable UpdateDetailsMongodb(MongoTable mongo){
@@ -36,6 +50,7 @@ public class MongoService implements InterfaceMongoService {
             MongoTable data = new MongoTable();
             data.setName("Details not");
             data.setDepartment("Found");
+    
             return data;
         }
         MongoTable existingmongodetails = GetDetailsbyId(mongo.get_id());

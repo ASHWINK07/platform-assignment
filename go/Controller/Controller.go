@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/ASHWINK07/tasker/MongoConnections"
@@ -35,54 +34,31 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			results, err := MongoOperations.MongoGet(id[2], client, ctx)
 			if err != nil {
 				panic(err)
+				io.WriteString(w, "Id not found")
+				fmt.Fprintf(w, "ID not found")
 				return
 			}
+			var count int = 0
 			for _, doc := range results {
-
+				count = count + 1
 				fmt.Println(doc)
 			}
+			if count == 0 {
+				io.WriteString(w, "Id not found")
+				return
+			}
+			var value1, value2 string
 
-			fmt.Println(results)
-			fmt.Println(reflect.TypeOf(results))
-			fmt.Println(reflect.TypeOf(results[0]))
-			fmt.Println(reflect.TypeOf(results[0][0]))
-			a := results[0].Map()
-			//key := results[0][0].Key
-			//var value1, value2 string
-
-			value1 := results[0][0].Value
-			value2 := results[0][1].Value
-			//fmt.Println(key)
-			fmt.Println(value1, reflect.TypeOf(value1))
-			fmt.Println(value2, reflect.TypeOf(value2))
-			//fmt.Fprintf(w, value1.string(), value2)
-			// b, err := bson.Marshal(results[0])
-			// if err != nil {
-			// 	fmt.Println("error:", err)
-			// 	return
-			// }
-			// s := string(b)
-			// fmt.Println(s)
-			//k := strings.Split(s, "Name")
-			//fmt.Println(k)
-			//fmt.Println(reflect.TypeOf(s))
-			// var username map[string]interface{}
-			// k,err := a["Name"].(string)
-			// fmt.Println(username)
-			fmt.Println(reflect.TypeOf(a["Name"]))
-			//fmt.Println(a["Department"])
-			//io.WriteString(w,a["Name"])
-			//io.WriteString(w,results[0].Map())
-			//fmt.Println(results.name)
-			//results.
-			//return the ouput for get request
-			//io.WriteString(w, "200 Get request Successfull")
-			//io.WriteString(w, value1+value2)
+			value1 = results[0][0].Value.(string)
+			value2 = results[0][1].Value.(string)
+			fmt.Println(value1, value2)
+			io.WriteString(w, value1+" "+value2)
 			return
 		} else if r.Method == "POST" {
 			//if it is a Post Request on mongodb database
 			if err := r.ParseForm(); err != nil {
 				fmt.Fprintf(w, "ParseForm() err: %v", err)
+
 				return
 			}
 			//get the form values i.e name and department
@@ -94,6 +70,7 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			//check whether there is error
 			if err != nil {
 				panic(err)
+				io.WriteString(w, "Insertion failed")
 				return
 			}
 			fmt.Println("POST request successfull")
@@ -107,6 +84,8 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			err = MongoOperations.MongoDelete(id[2], client, ctx)
 			if err != nil {
 				panic(err)
+				io.WriteString(w, "Id not found")
+				fmt.Fprintf(w, "ID not found")
 				return
 			}
 			fmt.Println("Deletion Successfull")
@@ -122,6 +101,8 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			err = MongoOperations.MongoUpdate(id[2], name, department, client, ctx)
 			if err != nil {
 				panic(err)
+				io.WriteString(w, "Id not found")
+				fmt.Fprintf(w, "ID not found")
 				return
 			}
 			fmt.Println("update single document")
@@ -144,6 +125,10 @@ func Routing(w http.ResponseWriter, r *http.Request) {
 			var userid int
 			username, team, userid = SqlServices.SqlGet(db, id[2])
 			//return the output
+			if userid == -1 {
+				io.WriteString(w, "Id not found")
+				return
+			}
 			fmt.Fprintf(w, "_id = %d\n", userid)
 			fmt.Fprintf(w, "Name = %s\n", username)
 			fmt.Fprintf(w, "Department = %s\n", team)

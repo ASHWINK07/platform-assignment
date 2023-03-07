@@ -21,6 +21,7 @@ public class SqlService implements InterfaceSqlService {
             details.setDepartment("Found");
             return details;
         }
+        System.out.println(repository.findAll());
         return repository.findById(id).orElse(null);
     }
 

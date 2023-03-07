@@ -43,8 +43,8 @@ public class SqlController {
             new_data.set_id(Integer.parseInt(id));
             new_data.setDepartment(department);
             new_data.setName(name);
-            mservice.UpdateDetailsMongodb(new_data);
-            if (new_data.getDepartment().equals("Found")) {
+            new_data = mservice.UpdateDetailsMongodb(new_data);
+            if (new_data.getDepartment().equals("Found") ) {
                 return "Details not present in database";
             }
             return "update successfull";
@@ -53,8 +53,8 @@ public class SqlController {
         details.setId(Integer.parseInt(id));
         details.setName(name);
         details.setDepartment(department);
-        System.out.println(name+" "+department);
-        service.UpdateDetails(details);
+        //System.out.println(name+" "+department);
+        details = service.UpdateDetails(details);
         if (details.getDepartment().equals("Found")) {
             return "Details not present in database";
         }
@@ -90,7 +90,5 @@ public class SqlController {
             return mservice.DeleteMongoDetails(Integer.parseInt(id));
         }
         return service.DeleteDetails(Integer.parseInt(id));
-        //return "deletion successfull";
-        //return mservice.deletemongodetails(Integer.parseInt(id));
     }
 }

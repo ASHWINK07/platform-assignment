@@ -2,9 +2,8 @@ package MongoOperations
 
 import (
 	"context"
-	"math/rand"
+	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/ASHWINK07/tasker/MongoServices"
 	_ "github.com/go-sql-driver/mysql"
@@ -14,12 +13,16 @@ import (
 
 func MongoInsert(name, department string, client *mongo.Client, ctx context.Context) error {
 	var document interface{}
-	rand.Seed(time.Now().UnixNano())
-	userid := rand.Intn(399)
+	// rand.Seed(time.Now().UnixNano())
+	// userid := rand.Intn(399)
+	var max int32 = MongoServices.FindMaxId(client, ctx, "employee", "records")
+
+	fmt.Println(max)
+	//getmax:=MongoServices.FindMaxId(client,ctx,"employee","records")
 	document = bson.D{
 		{"Name", name},
 		{"Department", department},
-		{"_id", userid},
+		{"_id", max + 1},
 	}
 	//Insert the document into employee databse ->records collection
 	_, err := MongoServices.InsertOne(client, ctx, "employee", "records", document)
