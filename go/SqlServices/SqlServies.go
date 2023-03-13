@@ -52,7 +52,7 @@ func SqlDelete(db *sql.DB, id string) error {
 		panic((err))
 	}
 	deletequery := "DELETE from users where id=?"
-	result, err := db.ExecContext(context.Background(), deletequery, userid)
-	fmt.Println(*result)
+	_, err = db.ExecContext(context.Background(), deletequery, userid)
+	//fmt.Println(result)
 	return err
 }
